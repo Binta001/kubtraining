@@ -1,0 +1,148 @@
+  sudo yum check-update
+    2  sudo yum install -y yum-utils device-mapper-persistent-data lvm2
+    3  sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+    5  sudo yum --disablerepo=docker-ce-stable install docker
+    6  sudo systemctl start docker
+    7  sudo systemctl status docker
+    8  sudo systemctl enable docker
+    9  sudo systemctl status docker
+   10  docker ps
+   11  sudo docker ps
+   12  mkdir mydockerimage
+   14  cd mydockerimage/
+   16  vi Dockerfile
+FROM ubuntu
+MAINTAINER binta
+RUN apt-get update
+CMD ["echo","hello world"]
+
+   17  cat Dockerfile
+   19  docker build -t myfirstimage .
+   20  sudo docker build -t myfirstimage .
+   21  docker images
+   22  sudo docker images
+   26  cat Dockerfile
+   28  sudo docker run --name firstcontainer myfirstimage
+   29  sudo docker ps
+
+To push to ECR
+    Install Docker using the steps above
+   13  aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 271986708276.dkr.ecr.us-east-1.amazonaws.com
+        aws configure
+        access and secret,region, json
+        test with aws s3 ls
+   16  aws ecr describe-repositories --region us-east-1
+   18  aws ecr describe-images --repository-name fabinta --region us-east-1
+   19  docker images
+   20  docker pull 271986708276.dkr.ecr.us-east-1.amazonaws.com/fabinta:latest
+   23  docker run aff41cf09534
+to delete image
+    docker rmi 25c5ee8cc7f6(imageid)
+    docker rmi 25c5ee8cc7f6 -f (to forcely delete)
+
+ How to create KMS Keys
+    2  aws kms create-key --region us-east-1
+    3  aws kms enable-key-rotation --key-id arn:aws:kms:us-east-1:271986708276:key/cfb164bc-c1af-42dc-8de9-0540567aa9a7 --region us-east-1
+    4  aws kms disable-key-rotation --key-id arn:aws:kms:us-east-1:271986708276:key/cfb164bc-c1af-42dc-8de9-0540567aa9a7 --region us-east-1
+    6  aws kms get-key-rotation-status
+    7  aws kms get-key-rotation-status --key-id arn:aws:kms:us-east-1:271986708276:key/cfb164bc-c1af-42dc-8de9-0540567aa9a7 --region us-east-1
+    8  aws kms enable-key-rotation --key-id arn:aws:kms:us-east-1:271986708276:key/cfb164bc-c1af-42dc-8de9-0540567aa9a7 --region us-east-1
+    9  aws kms get-key-rotation-status --key-id arn:aws:kms:us-east-1:271986708276:key/cfb164bc-c1af-42dc-8de9-0540567aa9a7 --region us-east-1
+
+Bastien commands
+ ls -latr
+  chmod 400
+   chmod 400 NVkeypair.pem
+    ls
+    ls -latr
+    ssh -i NVkeypair.pem ec2-user@10.0.1.97 (private ip of private ec2)
+
+https://bitnami.com/stack/suitecrm/cloud/aws
+
+https://docs.bitnami.com/aws/how-to/migrate-database-rds/
+
+     yum install docker -y
+    2  docker --version
+    3  docker ps
+    4  systemctl start docker
+    5  systemctl status docker
+    6  docker ps
+    7  docker images        (list image)
+    8  docker pull <image name eg ubuntu>   (to pull image from repo)
+    9  docker images
+   10  docker run -it <image name eg ubuntu> (to run a container in interrativeway)
+   12  docker ps -a (to list all container even the stop ones)
+   13  docker run -it --name <name of container eg maria>  <image name eg ubuntu> /bin/bash
+   14  docker ps -a
+   15  docker start <name of container eg maria>
+   16  docker ps -a
+   17  docker attach <container name eg maria> (to go inside the container)
+   18  docker diff <name of container eg maria>   (see the diffb/w base image and container)
+   19  docker commit <container name eg maria> <name of the new image to be created eg myimage> (Create an image from a existing container)
+   20  ls
+   21  docker images
+   22  docker run -it --name <name of container eg binta> <name of image eg myimage> /bin/bash
+        docker run -it --name goodone shida /bin/bash
+   22  docker rename <container id> <new container name> (to rename a container)
+       eg docker rename 9c333ac54e3c mouhamed
+
+     
+  23 Create a container using dockerfile
+       vi Dockerfile (Create file always make sure all the key words arecapital and name of the file is Dockerfile)
+            Eg. FROM ubuntu
+                RUN touch a.txt b.txt
+  24   docker build -t <name of the image to be created from the docker file eg Shida> .
+         eg. docker build -t Shida . (to build an image from dockerfile)
+  25   docker images
+
+docker --version (To check if docker is install)
+docker rmi <name of container> (to delete a container)
+
+pull from ecr
+docker pull 271986708276.dkr.ecr.us-east-1.amazonaws.com/ubuntu:latest
+docker images
+docker run -it --name lisa 271986708276.dkr.ecr.us-east-1.amazonaws.com/ubuntu /bin/bash
+
+docker tag isatu:new 271986708276.dkr.ecr.us-east-1.amazonaws.com/isatu:new
+docker push 271986708276.dkr.ecr.us-east-1.amazonaws.com/isatu:new
+
+
+Steps
+Create a zip file
+Dockerfile
+FROM ubuntu
+WORKDIR /var
+RUN touch a.txt
+ADD home.tar.gz /tmp ( will unzip the file and copy it from the ec2 to the container)
+COPY file2.txt /var (will just copy the file)
+VOLUME myvol
+EXPOSE  80 (this will expose the port within)
+
+
+1 create an image from the docker file and a container
+    docker build -t king<image name> .
+    docker run -it --name queen<cont name> king<image name> /bin/bash
+
+2 create a volume 
+    a. Create a volumefrom dockerfile
+       create an image and run a contaner
+    b.Create a volume without using dockerfile
+      docker run -it --name wood(name of cont) -v joshvol(name of vol created):/myvol(name of dir to mount vol) ubuntu /bin/bash
+    c. create a volume using docker volume command
+        docker volume create <name of volume>
+    d. share volume with another container
+        docker run -it --name john<cont name which we will share the vol with> --privelidge=true --volumes-from moh<The cont which we want to share the vol from> ubuntu /bin/bash
+        (docker run -it --name cont3 --privelidge=true --volumes-from cont2 ubuntu /bin/bash) This will create a cont eg cont3 and copy the vol there.
+
+3 Mapping Docker volume to EC2 dir
+      docker run -it --name kon<con name> -v /home/ec2-user:/myvol<vol name> --privileged=true ubuntu /bin/bash (will create a vol and map it with ec2 dir) or
+     
+3 publish port
+   docker run -td --name meg(cont) -p 80<port of ec2>:80<port of cont> ubuntu /bin/bash (specific port)
+   
+4 Expose a port using commands
+    docker run -td --name meg(cont) --expose=80 ubuntu /bin/bash (specific port)   
+
+
+
+
